@@ -11,7 +11,11 @@ The database consists of the following tables:
 * **Projects**: Tracks project names and their active status.
 * **ProjectAssignments**: Links employees to projects and tracks hours logged.
 
-The visual Entity Relationship Diagram (ERD) is available in `erd.pdf`.
+The visual Entity Relationship Diagram (ERD) is shown below:
+
+![Entity Relationship Diagram](erd.png)
+
+A PDF version is also available in `erd.pdf`.
 
 ## File Execution Order
 
