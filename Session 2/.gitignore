@@ -1,0 +1,19 @@
+# VS Code Settings
+.vscode/
+
+# IDE Settings
+.idea/
+
+# SQL Server Database files
+*.mdf
+*.ldf
+*.bak
+*.tmp
+*.log
+
+# System files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+/net-commander
