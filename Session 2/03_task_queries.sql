@@ -15,23 +15,34 @@ ORDER BY TotalAmountSpent DESC;
 GO
 
 -- Task 2
-SELECT 
-    c.CustomerName,
-    sub.TotalOrders,
-    sub.UnpaidOrderCount
-FROM Customers c
-INNER JOIN (
+WITH CustomerOrders AS
+(
     SELECT 
         o.CustomerID,
         COUNT(o.OrderID) AS TotalOrders,
-        SUM(CASE WHEN p.PaymentStatus <> 'Paid' OR p.PaymentStatus IS NULL THEN 1 ELSE 0 END) AS UnpaidOrderCount
+        SUM(
+            CASE
+                WHEN p.PaymentStatus <> 'Paid'
+                     OR p.PaymentStatus IS NULL
+                THEN 1
+                ELSE 0
+            END
+        ) AS UnpaidOrderCount
     FROM Orders o
-    LEFT JOIN Payments p ON o.OrderID = p.OrderID
+    LEFT JOIN Payments p
+        ON o.OrderID = p.OrderID
     GROUP BY o.CustomerID
     HAVING COUNT(o.OrderID) > 3
-) sub ON c.CustomerID = sub.CustomerID
-WHERE sub.UnpaidOrderCount >= 1;
-GO
+)
+
+SELECT
+    c.CustomerName,
+    co.TotalOrders,
+    co.UnpaidOrderCount
+FROM Customers c
+INNER JOIN CustomerOrders co
+    ON c.CustomerID = co.CustomerID
+WHERE co.UnpaidOrderCount >= 1;
 
 -- Task 3
 SELECT 
@@ -113,17 +124,17 @@ GO
 -- Task 7
 WITH MonthlyRevenue AS (
     SELECT 
-        FORMAT(o.OrderDate, 'yyyy-MM') AS SalesMonth,
+        CAST(FORMAT(o.OrderDate, 'yyyy-MM') AS VARCHAR(7)) AS SalesMonth,
         SUM(oi.Quantity * oi.UnitPrice) AS Revenue
     FROM Orders o
     INNER JOIN OrderItems oi ON o.OrderID = oi.OrderID
     WHERE o.OrderDate >= DATEADD(MONTH, -12, GETDATE())
-    GROUP BY FORMAT(o.OrderDate, 'yyyy-MM')
+    GROUP BY CAST(FORMAT(o.OrderDate, 'yyyy-MM') AS VARCHAR(7))
 )
 SELECT 
     SalesMonth,
     Revenue AS MonthlyRevenue,
-    SUM(Revenue) OVER (ORDER BY SalesMonth) AS CumulativeRevenue
+    SUM(Revenue) OVER (ORDER BY SalesMonth ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS CumulativeRevenue
 FROM MonthlyRevenue
 ORDER BY SalesMonth ASC;
 GO
@@ -146,7 +157,7 @@ SELECT
     DATEDIFF(DAY, RegistrationDate, FirstOrderDate) AS DaysToFirstOrder
 FROM FirstOrderDetails
 WHERE DATEDIFF(DAY, RegistrationDate, FirstOrderDate) <= 7;
-GO
+GO+
 
 -- Task 9
 WITH CategoryHierarchy AS (
@@ -176,8 +187,12 @@ SELECT
     CategoryPath,
     HierarchyLevel
 FROM CategoryHierarchy
-ORDER BY CategoryPath ASC;
+ORDER BY HierarchyLevel ASC;
 GO
+
+
+
+
 
 -- Task 10
 IF OBJECT_ID('dbo.vw_customer_order_summary', 'V') IS NOT NULL
